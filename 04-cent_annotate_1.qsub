@@ -1,0 +1,31 @@
+#! /bin/bash --login
+# Time job will take to execute (HH:MM:SS format) 
+#PBS -l walltime=12:00:00 
+# Memory needed by the job 
+#PBS -l mem=250Gb 
+# Number of shared memory nodes required and the number of processors per node
+#PBS -l nodes=1:ppn=8
+# Make output and error files the same file 
+#PBS -j oe
+# Send an email when a job is aborted, begins or ends 
+#PBS -m abe
+# Give the job a name
+#PBS -N assembly_annotation
+#_______________________________________________________________________# 
+
+cd ~/Centralia/total_megahit
+
+module load prokka/1.7
+
+prokka --metagenome --compliant final.contigs.fa
+
+#end 
+#_______________________________________________________________________# 
+# PBS stats 
+cat ${PBS_NODEFILE} 
+env | grep PBS 
+qstat -f ${PBS_JOBID} 
+
+
+
+

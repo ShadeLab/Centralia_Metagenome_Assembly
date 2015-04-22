@@ -1,0 +1,45 @@
+#! /bin/bash --login
+# Time job will take to execute (HH:MM:SS format) 
+#PBS -l walltime=54:00:00 
+# Memory needed by the job 
+#PBS -l mem=250Gb 
+# Number of shared memory nodes required and the number of processors per node
+#PBS -l nodes=1:ppn=4
+# Make output and error files the same file 
+#PBS -j oe
+# Send an email when a job is aborted, begins or ends 
+#PBS -m abe
+# Give the job a name
+#PBS -N pooled_norm_and_assemble 
+#_______________________________________________________________________# 
+
+cd ~/Centralia
+
+module load khmer/1.2
+
+module load FASTX/0.0.14
+
+fastq_quality_filter -Q33 -q 30 -p 50  -i pooled.fastq -o pooled_trim.fastq
+
+normalize-by-median.py -k 20 -C 20 -N 4 -x 1e9 --savetable normC20k20.kh pooled_trim.fastq
+
+filter-abund.py -V normC20k20.kh pooled_trim.fastq.keep
+
+normalize-by-median.py -C 5 -k 20 -N 4 -x 1e9 --savetable normC5k20.kh pooled_trim.fastq.keep.abundfilt
+
+mv pooled_trim.fastq.keep.abundfilt pooled_normed.fastq
+
+module load megahit
+
+megahit --cpu-only -m 60e9 -l 250 -r pooled_normed.fastq -o pooled_megahit
+
+#end 
+#_______________________________________________________________________# 
+# PBS stats 
+cat ${PBS_NODEFILE} 
+env | grep PBS 
+qstat -f ${PBS_JOBID} 
+
+
+
+
